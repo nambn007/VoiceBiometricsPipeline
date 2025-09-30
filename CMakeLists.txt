@@ -4,10 +4,14 @@ project(voice_bio_pipeline_cc CXX)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-# ONNX Runtime (adjust these paths if needed)
-set(ONNXRUNTIME_ROOT "${CMAKE_SOURCE_DIR}/../examples/onnxruntime-linux-x64-1.12.1")
-include_directories(${ONNXRUNTIME_ROOT}/include)
-link_directories(${ONNXRUNTIME_ROOT}/lib)
+# ONNX Runtime
+set(ONNXRUNTIME_ROOT "${CMAKE_SOURCE_DIR}/third_party/onnxruntime")
+if(EXISTS "${ONNXRUNTIME_ROOT}/include" AND EXISTS "${ONNXRUNTIME_ROOT}/lib")
+  include_directories(${ONNXRUNTIME_ROOT}/include)
+  link_directories(${ONNXRUNTIME_ROOT}/lib)
+else()
+  message(FATAL_ERROR "ONNX Runtime not found under ${ONNXRUNTIME_ROOT}. Run bash setup_onnxruntime.sh to install.")
+endif()
 
 # Kaldi Native Fbank
 set(KALDI_FBANK_ROOT "${CMAKE_SOURCE_DIR}/third_party/kaldi-native-fbank")
@@ -27,6 +31,12 @@ target_include_directories(voice_bio PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
 target_link_libraries(voice_bio PRIVATE 
     onnxruntime
     kaldi-native-fbank-core
+)
+
+# Ensure the built binary can locate ONNX Runtime at runtime
+set_target_properties(voice_bio PROPERTIES
+  BUILD_RPATH "${ONNXRUNTIME_ROOT}/lib"
+  INSTALL_RPATH "${ONNXRUNTIME_ROOT}/lib"
 )
 
 if(UNIX)
