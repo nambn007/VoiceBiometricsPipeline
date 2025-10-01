@@ -1,0 +1,32 @@
+[
+{
+  "directory": "/u02/libs/silero-vad/cc/build",
+  "command": "/usr/bin/c++  -I/u02/libs/silero-vad/cc/third_party/onnxruntime/include -I/u02/libs/silero-vad/cc/third_party/kaldi-native-fbank -I/u02/libs/silero-vad/cc -std=gnu++17 -o CMakeFiles/voice_bio.dir/main.cc.o -c /u02/libs/silero-vad/cc/main.cc",
+  "file": "/u02/libs/silero-vad/cc/main.cc",
+  "output": "CMakeFiles/voice_bio.dir/main.cc.o"
+},
+{
+  "directory": "/u02/libs/silero-vad/cc/build",
+  "command": "/usr/bin/c++  -I/u02/libs/silero-vad/cc/third_party/onnxruntime/include -I/u02/libs/silero-vad/cc/third_party/kaldi-native-fbank -I/u02/libs/silero-vad/cc -std=gnu++17 -o CMakeFiles/voice_bio.dir/voice_bio_pipeline.cc.o -c /u02/libs/silero-vad/cc/voice_bio_pipeline.cc",
+  "file": "/u02/libs/silero-vad/cc/voice_bio_pipeline.cc",
+  "output": "CMakeFiles/voice_bio.dir/voice_bio_pipeline.cc.o"
+},
+{
+  "directory": "/u02/libs/silero-vad/cc/build",
+  "command": "/usr/bin/c++  -I/u02/libs/silero-vad/cc/third_party/onnxruntime/include -I/u02/libs/silero-vad/cc/third_party/kaldi-native-fbank -I/u02/libs/silero-vad/cc -std=gnu++17 -o CMakeFiles/voice_bio.dir/ecapa_engine.cc.o -c /u02/libs/silero-vad/cc/ecapa_engine.cc",
+  "file": "/u02/libs/silero-vad/cc/ecapa_engine.cc",
+  "output": "CMakeFiles/voice_bio.dir/ecapa_engine.cc.o"
+},
+{
+  "directory": "/u02/libs/silero-vad/cc/build",
+  "command": "/usr/bin/c++  -I/u02/libs/silero-vad/cc/third_party/onnxruntime/include -I/u02/libs/silero-vad/cc/third_party/kaldi-native-fbank -I/u02/libs/silero-vad/cc -std=gnu++17 -o CMakeFiles/voice_bio.dir/mel_extractor.cc.o -c /u02/libs/silero-vad/cc/mel_extractor.cc",
+  "file": "/u02/libs/silero-vad/cc/mel_extractor.cc",
+  "output": "CMakeFiles/voice_bio.dir/mel_extractor.cc.o"
+},
+{
+  "directory": "/u02/libs/silero-vad/cc/build",
+  "command": "/usr/bin/c++  -I/u02/libs/silero-vad/cc/third_party/onnxruntime/include -I/u02/libs/silero-vad/cc/third_party/kaldi-native-fbank -I/u02/libs/silero-vad/cc -std=gnu++17 -o CMakeFiles/voice_bio.dir/vad_engine.cc.o -c /u02/libs/silero-vad/cc/vad_engine.cc",
+  "file": "/u02/libs/silero-vad/cc/vad_engine.cc",
+  "output": "CMakeFiles/voice_bio.dir/vad_engine.cc.o"
+}
+]

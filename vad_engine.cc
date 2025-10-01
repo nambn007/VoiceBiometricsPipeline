@@ -81,7 +81,7 @@ float VadEngine::process_window(const float* audio_data, int size) {
             input_shape.size()
         );
         
-        // Prepare sample rate tensor: [1] - must be int64
+        // Prepare sample rate tensor: [1] as int64
         std::vector<int64_t> sr_shape = {1};
         int64_t sr_value = static_cast<int64_t>(sample_rate_);
         

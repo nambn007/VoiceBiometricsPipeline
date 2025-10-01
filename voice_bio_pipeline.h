@@ -9,6 +9,7 @@
 class EcapaEngine;
 class MelExtractor;
 class VadEngine;
+class VadIterator;
 
 struct Timestamp {
     int start; // in samples
@@ -58,6 +59,8 @@ public:
     static float cosine_similarity(const std::vector<float>& a, const std::vector<float>& b);
 
 private:
+    // Mean normalization for mel features (matches SpeechBrain InputNormalization)
+    void normalize_features(std::vector<std::vector<float>>& features) const;
     int sr_;
     float min_speech_duration_sec_ = 0.5f;
 
@@ -65,6 +68,8 @@ private:
     std::unique_ptr<EcapaEngine> ecapa_engine_;
     std::unique_ptr<MelExtractor> mel_extractor_;
     std::unique_ptr<VadEngine> vad_engine_;
+    std::unique_ptr<VadIterator> vad_engine_2_;
+    
 };
 
 

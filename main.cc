@@ -20,6 +20,7 @@ int main(int argc, char** argv) {
     }
 
     std::cout << "Initializing Voice Biometrics Pipeline..." << std::endl;
+    std::cout << ecapa_model_path << " " << vad_model_path << std::endl;
     VoiceBiometricsPipeline pipeline(16000, ecapa_model_path, vad_model_path);
     
     std::cout << "\nEnrolling speaker from: " << argv[1] << std::endl;

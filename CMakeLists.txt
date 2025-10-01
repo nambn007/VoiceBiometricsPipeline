@@ -24,11 +24,26 @@ add_executable(voice_bio
     ecapa_engine.cc
     mel_extractor.cc
     vad_engine.cc
+    vad_engine_2.cpp
+)
+
+add_executable(voice_bio_pipeline
+    main_2.cc 
+    VoiceBiometricsPipeline.cpp
+    VoiceBiometricsPipeline.h
+    ecapa_engine.cc
+    mel_extractor.cc
+    vad_engine_2.cpp
 )
 
 target_include_directories(voice_bio PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
 
 target_link_libraries(voice_bio PRIVATE 
+    onnxruntime
+    kaldi-native-fbank-core
+)
+
+target_link_libraries(voice_bio_pipeline PRIVATE 
     onnxruntime
     kaldi-native-fbank-core
 )

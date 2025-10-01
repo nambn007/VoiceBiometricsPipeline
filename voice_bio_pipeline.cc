@@ -2,11 +2,13 @@
 #include "ecapa_engine.h"
 #include "mel_extractor.h"
 #include "vad_engine.h"
+#include "vad_engine_2.h"
 
 #include <algorithm>
 #include <cmath>
 #include <fstream>
 #include <iostream>
+#include <memory>
 #include <stdexcept>
 
 namespace {
@@ -77,10 +79,13 @@ VoiceBiometricsPipeline::VoiceBiometricsPipeline(
     
     // Initialize VAD engine if model path provided
     if (!vad_model_path.empty()) {
-        vad_engine_ = std::make_unique<VadEngine>(vad_model_path, sampling_rate);
+        // vad_engine_ = std::make_unique<VadEngine>(vad_model_path, sampling_rate);
+        vad_engine_2_ = std::make_unique<VadIterator>();
+        vad_engine_2_->loadModel(vad_model_path);
     } else {
         std::cout << "⚠️  No VAD model path provided, processing full audio" << std::endl;
     }
+    
     
     // Initialize ECAPA engine if model path provided
     if (!ecapa_model_path.empty()) {
@@ -97,14 +102,21 @@ std::vector<float> VoiceBiometricsPipeline::read_audio(const std::string& path) 
 }
 
 std::vector<Timestamp> VoiceBiometricsPipeline::get_speech_timestamps(const std::vector<float>& wav) const {
-    if (vad_engine_ && vad_engine_->is_loaded()) {
+    if (vad_engine_2_) {
         // Use Silero VAD ONNX engine
-        return vad_engine_->detect_speech(
-            wav,
-            0.5f,  // threshold
-            static_cast<int>(min_speech_duration_sec_ * 1000),  // min_speech_duration_ms
-            100    // min_silence_duration_ms
-        );
+        std::cout << "Start using VAD Engine\n";
+        vad_engine_2_->process(wav);
+        auto res = vad_engine_2_->get_speech_timestamps();
+        
+        std::vector<Timestamp> results;
+        for (auto ts_t : res) {
+            Timestamp ts;
+            ts.start = ts_t.start;
+            ts.end = ts_t.end;
+            results.push_back(ts);
+        }
+
+        return results;
     } else {
         // Fallback: return full audio as one segment
         std::vector<Timestamp> tss;
@@ -135,12 +147,47 @@ std::vector<float> VoiceBiometricsPipeline::encode_chunk(const std::vector<float
     // Step 1: Extract mel-spectrogram features using real implementation
     auto mel_features = mel_extractor_->extract(wav_chunk);
     
-    // Step 2: Run ECAPA-TDNN inference
+    // Step 2: Mean normalization (sentence-level, std_norm=False)
+    // This matches SpeechBrain's InputNormalization(norm_type="sentence", std_norm=False)
+    normalize_features(mel_features);
+    
+    // Step 3: Run ECAPA-TDNN inference
     if (ecapa_engine_ && ecapa_engine_->is_loaded()) {
         return ecapa_engine_->compute_embedding(mel_features);
     } else {
         std::cerr << "⚠️  ECAPA engine not loaded, returning dummy embedding" << std::endl;
         return std::vector<float>(192, 0.0f);
+    }
+}
+
+void VoiceBiometricsPipeline::normalize_features(std::vector<std::vector<float>>& features) const {
+    // InputNormalization with norm_type="sentence", std_norm=False
+    // Computes mean across time dimension (dim=1) and subtracts it
+    // Formula: normalized = (features - mean) / 1.0
+    
+    if (features.empty() || features[0].empty()) return;
+    
+    const size_t n_frames = features.size();
+    const size_t n_mels = features[0].size();
+    
+    // Compute mean for each mel bin across all time frames
+    std::vector<float> means(n_mels, 0.0f);
+    for (const auto& frame : features) {
+        for (size_t i = 0; i < n_mels; ++i) {
+            means[i] += frame[i];
+        }
+    }
+    
+    const float inv_n_frames = 1.0f / static_cast<float>(n_frames);
+    for (size_t i = 0; i < n_mels; ++i) {
+        means[i] *= inv_n_frames;
+    }
+    
+    // Subtract mean from each frame (zero-centering)
+    for (auto& frame : features) {
+        for (size_t i = 0; i < n_mels; ++i) {
+            frame[i] -= means[i];
+        }
     }
 }
 
@@ -158,8 +205,37 @@ std::vector<float> VoiceBiometricsPipeline::mean_pool(const std::vector<std::vec
 
 std::pair<std::vector<float>, std::vector<Timestamp>> VoiceBiometricsPipeline::extract_embedding(const std::string& audio_path) const {
     auto wav = read_audio(audio_path);
+    // Dump wav to file "debug_wav.bin" for debugging
+    // {
+    //     static int count = 0;
+    //     std::string file_path = "debug_wav" + std::to_string(++count) + ".bin";
+    //     FILE* f = std::fopen(file_path.c_str(), "wb");
+    //     if (f) {
+    //         std::fwrite(wav.data(), sizeof(float), wav.size(), f);
+    //         std::fclose(f);
+    //     } else {
+    //         std::cerr << "Failed to open debug_wav.bin for writing" << std::endl;
+    //     }
+    // }
+
     auto tss = get_speech_timestamps(wav);
+    for (const auto &ts : tss) {
+        std::cout << ts.start << " " << ts.end << std::endl;
+    }
+
     auto chunks = build_chunks(wav, tss);
+
+    // std::cout << "Size of chunks: " << chunks.size() << std::endl;
+    // int count = 0;
+    // std::cout << "Chunk 0: " << chunks[0].second.start << " " << chunks[0].second.end << std::endl;
+    // for (int i = 0; i < chunks[0].first.size(); i++) {
+    //     if (chunks[0].first[i] > 0) {
+    //         std::cout << chunks[0].first[i] << " ";
+    //         if (++count > 100) {
+    //             break;}
+    //     }
+    // } std::cout << std::endl;
+
     std::vector<std::vector<float>> embs;
     std::vector<Timestamp> kept;
     for (const auto& ct : chunks) {
