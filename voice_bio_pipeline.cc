@@ -75,15 +75,18 @@ VoiceBiometricsPipeline::VoiceBiometricsPipeline(
         0.0f,   // f_min
         8000.0f // f_max
     );
-    std::cout << "✅ Mel Extractor initialized" << std::endl;
+    std::cout << "Mel Extractor initialized" << std::endl;
     
+
+    extractor_ = std::make_unique<AudioFeatureExtractor>();
+    std::cout << "Audio Feature Extractor initialized" << std::endl;
+
     // Initialize VAD engine if model path provided
     if (!vad_model_path.empty()) {
-        // vad_engine_ = std::make_unique<VadEngine>(vad_model_path, sampling_rate);
         vad_engine_2_ = std::make_unique<VadIterator>();
         vad_engine_2_->loadModel(vad_model_path);
     } else {
-        std::cout << "⚠️  No VAD model path provided, processing full audio" << std::endl;
+        std::cout << "No VAD model path provided, processing full audio" << std::endl;
     }
     
     
@@ -91,7 +94,7 @@ VoiceBiometricsPipeline::VoiceBiometricsPipeline(
     if (!ecapa_model_path.empty()) {
         ecapa_engine_ = std::make_unique<EcapaEngine>(ecapa_model_path);
     } else {
-        std::cout << "⚠️  No ECAPA model path provided, using dummy embeddings" << std::endl;
+        std::cout << "No ECAPA model path provided, using dummy embeddings" << std::endl;
     }
 }
 
@@ -101,25 +104,16 @@ std::vector<float> VoiceBiometricsPipeline::read_audio(const std::string& path) 
     return read_wav_mono_16k(path);
 }
 
-std::vector<Timestamp> VoiceBiometricsPipeline::get_speech_timestamps(const std::vector<float>& wav) const {
+std::vector<timestamp_t> VoiceBiometricsPipeline::get_speech_timestamps(const std::vector<float>& wav) const {
     if (vad_engine_2_) {
         // Use Silero VAD ONNX engine
         std::cout << "Start using VAD Engine\n";
         vad_engine_2_->process(wav);
         auto res = vad_engine_2_->get_speech_timestamps();
-        
-        std::vector<Timestamp> results;
-        for (auto ts_t : res) {
-            Timestamp ts;
-            ts.start = ts_t.start;
-            ts.end = ts_t.end;
-            results.push_back(ts);
-        }
-
-        return results;
+        return res;
     } else {
         // Fallback: return full audio as one segment
-        std::vector<Timestamp> tss;
+        std::vector<timestamp_t> tss;
         if (wav.size() > static_cast<size_t>(0.5f * sr_)) {
             tss.push_back({0, static_cast<int>(wav.size())});
         }
@@ -127,10 +121,10 @@ std::vector<Timestamp> VoiceBiometricsPipeline::get_speech_timestamps(const std:
     }
 }
 
-std::vector<std::pair<std::vector<float>, Timestamp>> VoiceBiometricsPipeline::build_chunks(
+std::vector<std::vector<float>> VoiceBiometricsPipeline::build_chunks(
     const std::vector<float>& wav,
-    const std::vector<Timestamp>& tss) const {
-    std::vector<std::pair<std::vector<float>, Timestamp>> out;
+    const std::vector<timestamp_t>& tss) const {
+    std::vector<std::vector<float>> out;
     for (const auto& ts : tss) {
         int start = std::max(0, ts.start);
         int end = std::min(static_cast<int>(wav.size()), ts.end);
@@ -138,57 +132,9 @@ std::vector<std::pair<std::vector<float>, Timestamp>> VoiceBiometricsPipeline::b
         float dur_sec = static_cast<float>(end - start) / static_cast<float>(sr_);
         if (dur_sec < min_speech_duration_sec_) continue;
         std::vector<float> chunk(wav.begin() + start, wav.begin() + end);
-        out.emplace_back(std::move(chunk), Timestamp{start, end});
+        out.emplace_back(std::move(chunk));
     }
     return out;
-}
-
-std::vector<float> VoiceBiometricsPipeline::encode_chunk(const std::vector<float>& wav_chunk) const {
-    // Step 1: Extract mel-spectrogram features using real implementation
-    auto mel_features = mel_extractor_->extract(wav_chunk);
-    
-    // Step 2: Mean normalization (sentence-level, std_norm=False)
-    // This matches SpeechBrain's InputNormalization(norm_type="sentence", std_norm=False)
-    normalize_features(mel_features);
-    
-    // Step 3: Run ECAPA-TDNN inference
-    if (ecapa_engine_ && ecapa_engine_->is_loaded()) {
-        return ecapa_engine_->compute_embedding(mel_features);
-    } else {
-        std::cerr << "⚠️  ECAPA engine not loaded, returning dummy embedding" << std::endl;
-        return std::vector<float>(192, 0.0f);
-    }
-}
-
-void VoiceBiometricsPipeline::normalize_features(std::vector<std::vector<float>>& features) const {
-    // InputNormalization with norm_type="sentence", std_norm=False
-    // Computes mean across time dimension (dim=1) and subtracts it
-    // Formula: normalized = (features - mean) / 1.0
-    
-    if (features.empty() || features[0].empty()) return;
-    
-    const size_t n_frames = features.size();
-    const size_t n_mels = features[0].size();
-    
-    // Compute mean for each mel bin across all time frames
-    std::vector<float> means(n_mels, 0.0f);
-    for (const auto& frame : features) {
-        for (size_t i = 0; i < n_mels; ++i) {
-            means[i] += frame[i];
-        }
-    }
-    
-    const float inv_n_frames = 1.0f / static_cast<float>(n_frames);
-    for (size_t i = 0; i < n_mels; ++i) {
-        means[i] *= inv_n_frames;
-    }
-    
-    // Subtract mean from each frame (zero-centering)
-    for (auto& frame : features) {
-        for (size_t i = 0; i < n_mels; ++i) {
-            frame[i] -= means[i];
-        }
-    }
 }
 
 std::vector<float> VoiceBiometricsPipeline::mean_pool(const std::vector<std::vector<float>>& embeddings) const {
@@ -203,50 +149,37 @@ std::vector<float> VoiceBiometricsPipeline::mean_pool(const std::vector<std::vec
     return mean;
 }
 
-std::pair<std::vector<float>, std::vector<Timestamp>> VoiceBiometricsPipeline::extract_embedding(const std::string& audio_path) const {
+std::vector<float> VoiceBiometricsPipeline::extract_embedding(const std::string& audio_path) {
     auto wav = read_audio(audio_path);
-    // Dump wav to file "debug_wav.bin" for debugging
-    // {
-    //     static int count = 0;
-    //     std::string file_path = "debug_wav" + std::to_string(++count) + ".bin";
-    //     FILE* f = std::fopen(file_path.c_str(), "wb");
-    //     if (f) {
-    //         std::fwrite(wav.data(), sizeof(float), wav.size(), f);
-    //         std::fclose(f);
-    //     } else {
-    //         std::cerr << "Failed to open debug_wav.bin for writing" << std::endl;
-    //     }
-    // }
-
     auto tss = get_speech_timestamps(wav);
+    
+    // TODO Remove
+    std::cout << "Found " << tss.size() << " speech segments:" << std::endl;
     for (const auto &ts : tss) {
-        std::cout << ts.start << " " << ts.end << std::endl;
+        std::cout << "  " << ts.start << " - " << ts.end << std::endl;
     }
 
     auto chunks = build_chunks(wav, tss);
-
-    // std::cout << "Size of chunks: " << chunks.size() << std::endl;
-    // int count = 0;
-    // std::cout << "Chunk 0: " << chunks[0].second.start << " " << chunks[0].second.end << std::endl;
-    // for (int i = 0; i < chunks[0].first.size(); i++) {
-    //     if (chunks[0].first[i] > 0) {
-    //         std::cout << chunks[0].first[i] << " ";
-    //         if (++count > 100) {
-    //             break;}
-    //     }
-    // } std::cout << std::endl;
-
-    std::vector<std::vector<float>> embs;
-    std::vector<Timestamp> kept;
-    for (const auto& ct : chunks) {
-        const auto& chunk = ct.first;
-        const auto& ts = ct.second;
-        auto e = encode_chunk(chunk);
-        if (!e.empty()) { embs.push_back(std::move(e)); kept.push_back(ts); }
+    if (chunks.empty()) {
+        std::cerr << "No valid speech chunks found" << std::endl;
+        return {};
     }
-    if (embs.empty()) return {{}, {}};
-    auto pooled = mean_pool(embs);
-    return {pooled, kept};
+    
+    std::vector<std::vector<float>> embeddings;
+    for (const auto& chunk : chunks) {
+        auto mel_features = mel_extractor_->extract(chunk);
+        auto embedding = ecapa_engine_->compute_embedding(mel_features);
+        embeddings.push_back(embedding);
+    }
+    
+    if (embeddings.empty()) {
+        std::cerr << "Failed to extract embeddings" << std::endl;
+        return {};
+    }
+    
+    // Average embeddings across all chunks (mean pooling)
+    std::vector<float> final_embedding = mean_pool(embeddings);
+    return final_embedding;
 }
 
 float VoiceBiometricsPipeline::cosine_similarity(const std::vector<float>& a, const std::vector<float>& b) {
@@ -256,5 +189,3 @@ float VoiceBiometricsPipeline::cosine_similarity(const std::vector<float>& a, co
     if (na == 0.0 || nb == 0.0) return 0.0f;
     return static_cast<float>(dot / (std::sqrt(na) * std::sqrt(nb)));
 }
-
-

@@ -55,6 +55,9 @@ std::vector<float> EcapaEngine::compute_embedding(const std::vector<std::vector<
     }
     
     try {
+        std::cout << "Mel features size: " << mel_features.size() << std::endl;
+        std::cout << "Mel features 0 size: " << mel_features[0].size() << std::endl;
+
         // Prepare input tensor: [batch=1, time_frames, mel_features=80]
         int n_frames = static_cast<int>(mel_features.size());
         int n_mels = 80;
@@ -66,7 +69,7 @@ std::vector<float> EcapaEngine::compute_embedding(const std::vector<std::vector<
         std::vector<float> input_data(input_size);
         for (int t = 0; t < n_frames; ++t) {
             for (int f = 0; f < n_mels; ++f) {
-                input_data[t * n_mels + f] = mel_features[t][f];
+                input_data[t * n_mels + f] = static_cast<float>(mel_features[t][f]);
             }
         }
         
@@ -92,7 +95,9 @@ std::vector<float> EcapaEngine::compute_embedding(const std::vector<std::vector<
         // Extract output: [batch=1, 1, embedding_dim]
         float* output_data = output_tensors[0].GetTensorMutableData<float>();
         auto output_shape = output_tensors[0].GetTensorTypeAndShapeInfo().GetShape();
-        
+        for (int i = 0; i < output_shape.size(); i++) {
+            std::cout << output_shape.at(i) << " ";
+        } std::cout << std::endl;
         // Calculate total elements in output
         size_t total_elements = 1;
         for (auto dim : output_shape) {

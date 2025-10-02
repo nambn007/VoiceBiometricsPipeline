@@ -6,7 +6,10 @@
 #include <onnxruntime_cxx_api.h>
 
 // Forward declare Timestamp (defined in voice_bio_pipeline.h)
-struct Timestamp;
+struct Timestamp {
+    int start;
+    int end;
+};
 
 /**
  * Silero VAD ONNX Inference Engine

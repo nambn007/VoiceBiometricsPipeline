@@ -3,17 +3,17 @@
 #include <vector>
 #include <complex>
 
+inline
+std::vector<float> HammingWindow(int size) {
+    std::vector<float> window(size);
+    for (int i = 0; i < size; ++i) {
+        window[i] = 0.54 - 0.46 * std::cos(2.0 * M_PI * i / (size - 1));
+    }
+    return window;
+}
+
 /**
  * Mel-Spectrogram Feature Extractor
- * 
- * Extracts mel-spectrogram features from raw audio waveform.
- * Compatible with SpeechBrain Fbank parameters:
- * - sample_rate: 16000 Hz
- * - n_fft: 400
- * - hop_length: 160
- * - n_mels: 80
- * - f_min: 0 Hz
- * - f_max: 8000 Hz
  */
 class MelExtractor {
 public:
@@ -27,9 +27,8 @@ public:
     );
     
     // Extract mel-spectrogram from waveform
-    // Input: waveform (normalized float32, typically [-1, 1])
-    // Output: mel_features [time_frames, n_mels]
-    std::vector<std::vector<float>> extract(const std::vector<float>& waveform) const;
+    std::vector<std::vector<float>> extract(const std::vector<float>& waveform);
+    std::vector<std::vector<float>> extract(const std::vector<std::vector<float>>& waveform_chunks);
 
 private:
     int sample_rate_;
@@ -45,17 +44,24 @@ private:
     // Hanning window
     std::vector<float> window_;
     
-    void init_mel_filters();
-    void init_window();
-    
     // Helper functions
     static float hz_to_mel(float hz);
     static float mel_to_hz(float mel);
     
+    std::vector<std::vector<float>> mean_var_norm(const std::vector<std::vector<float>>& features);
+
     // STFT computation
-    std::vector<std::vector<std::complex<float>>> compute_stft(const std::vector<float>& signal) const;
+    std::vector<std::vector<std::complex<float>>> compute_stft(const std::vector<float>& signal,
+                                                               int win_length_samples,
+                                                               int hop_length_samples,
+                                                               int n_fft,
+                                                               bool center = true,
+                                                               const std::string &pad_mode = "reflect") const {};
     
-    // Apply mel filterbank to power spectrogram
-    std::vector<std::vector<float>> apply_mel_filterbank(
-        const std::vector<std::vector<std::complex<float>>>& stft) const;
+    std::vector<std::vector<float>> compute_spectral_magnitude(
+        const std::vector<std::vector<std::complex<float>>>& stft,
+        float power = 1.0f,
+        bool log_scale = false,
+        float eps = 1e-14f
+    ) {};
 };

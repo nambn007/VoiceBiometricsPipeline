@@ -37,29 +37,16 @@ class VoiceBiometricsPipeline:
         # Load audio 
         wav = self.read_audio(audio_path, sampling_rate=self.sampling_rate)
 
-        # Dump wav to file "debug_wav{count}.bin" for debugging, incrementing count per call
-        if not hasattr(self, "_wav_dump_count"):
-            self._wav_dump_count = 0
-        self._wav_dump_count += 1
-        wav_np = wav.cpu().numpy() if hasattr(wav, 'cpu') else np.array(wav)
-        file_path = f"debug_wav{self._wav_dump_count}.bin"
-        with open(file_path, "wb") as f:
-            f.write(wav_np.astype(np.float32).tobytes())
-        
         # VAD --> speech timestamps 
         speech_timestamps = self.get_speech_timestamps(
             wav,
-            self.vad_model,
-            # sampling_rate=self.sampling_rate,
-            # threshold=0.5,
-            # min_speech_duration_ms=250,
-            # min_silence_duration_ms=100,
-            # return_seconds=True
+            self.vad_model
         )
-        print(speech_timestamps)
 
         if len(speech_timestamps) == 0:
             return None, []
+
+        pprint(speech_timestamps)
 
         # Build list of chunks (list[Tensor]) from timestamps to preserve segments
         speech_chunks = []
@@ -74,18 +61,6 @@ class VoiceBiometricsPipeline:
                 continue
             speech_chunks.append((chunk, ts))
 
-        print("Size of chunks: ", len(speech_chunks))
-        count = 0
-        res = []
-        for temp in speech_chunks[0][0]:
-            if temp > 0:
-                res.append(temp.item())
-                count += 1
-            if count > 100:
-                break
-        # print(speech_chunks[0][0][:100])
-        print(res)
-
         # Extract embedding 
         embeddings = []
         valid_chunks = []
@@ -93,6 +68,7 @@ class VoiceBiometricsPipeline:
         for chunk, ts in speech_chunks:
             if chunk.dim() == 1:
                 chunk = chunk.unsqueeze(0)
+            print(chunk.shape)
             embedding = self.speaker_model.encode_batch(chunk)
             embeddings.append(embedding.squeeze().cpu())
             valid_chunks.append(ts)
@@ -116,6 +92,8 @@ class VoiceBiometricsPipeline:
 
         if len(speech_timestamps) == 0:
             return None
+
+        pprint(speech_timestamps)
 
         # Collect chunks 
         speech_chunks = self.collect_chunks(speech_timestamps, waveform)

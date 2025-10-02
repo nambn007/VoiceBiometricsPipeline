@@ -24,10 +24,10 @@ int main(int argc, char** argv) {
     VoiceBiometricsPipeline pipeline(16000, ecapa_model_path, vad_model_path);
     
     std::cout << "\nEnrolling speaker from: " << argv[1] << std::endl;
-    auto [emb1, chunks1] = pipeline.extract_embedding(argv[1]);
+    auto emb1 = pipeline.extract_embedding(argv[1]);
     
     std::cout << "\nVerifying speaker from: " << argv[2] << std::endl;
-    auto [emb2, chunks2] = pipeline.extract_embedding(argv[2]);
+    auto emb2 = pipeline.extract_embedding(argv[2]);
 
     if (emb1.empty() || emb2.empty()) {
         std::cerr << "❌ Failed to extract embeddings" << std::endl;
