@@ -19,7 +19,7 @@ compute_magnitude(
         mag_frame.reserve(frame.size());
         
         for (const auto& val : frame) {
-            // Tính real² + imag² (power spectrum)
+            // Calculate real² + imag² (power spectrum)
             float power_spec = val.real() * val.real() + val.imag() * val.imag();
             
             // Add eps nếu power < 1 (để tránh NaN khi spectr = 0)

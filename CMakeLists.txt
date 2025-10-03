@@ -27,17 +27,18 @@ link_directories(${FFTW_LIBRARY_DIRS})
 include_directories(${CMAKE_SOURCE_DIR})
 
 add_executable(voice_bio
-    main.cc
+    main.cpp
     audio_features.cpp
-    voice_bio_pipeline.cc
-    ecapa_engine.cc
-    mel_extractor.cc
+    voice_bio_pipeline.cpp
+    ecapa_engine.cpp
+    fbank.cpp
+    wav.cpp
     vad_engine.cpp
 )
 
 add_executable(test 
-  test/test_fbank.cc
-  mel_extractor.cc
+  test/test_fbank.cpp
+  fbank.cpp
   audio_features.cpp
 )
 

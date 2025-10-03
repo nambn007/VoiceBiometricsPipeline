@@ -1,4 +1,4 @@
-#include "mel_extractor.h"
+#include "fbank.h"
 #include <iostream>
 
 int main() {
@@ -33,23 +33,23 @@ int main() {
     }
 
 
-    auto STFT = ComputeSTFT(waveform, 25 * 16000 / 1000, 10 * 16000 / 1000, 400);
-    std::cout << "STFT size: " << STFT.size() << std::endl;
-    std::cout << "STFT[0] size: " << STFT[0].size() << std::endl;
-    for (int i = 0; i < STFT.size(); i++) {
-        for (int j = 0; j < STFT[i].size(); j++) {
-            std::cout << STFT[i][j] << " ";
-        }
-    }
+    // auto STFT = ComputeSTFT(waveform, 25 * 16000 / 1000, 10 * 16000 / 1000, 400);
+    // std::cout << "STFT size: " << STFT.size() << std::endl;
+    // std::cout << "STFT[0] size: " << STFT[0].size() << std::endl;
+    // for (int i = 0; i < STFT.size(); i++) {
+    //     for (int j = 0; j < STFT[i].size(); j++) {
+    //         std::cout << STFT[i][j] << " ";
+    //     }
+    // }
 
 
-    auto magnitude = ComputeMagnitude(STFT);
-    std::cout << "magnitude size: " << magnitude.size() << std::endl;
-    std::cout << "magnitude[0] size: " << magnitude[0].size() << std::endl;
-    for (int i = 0; i < magnitude.size(); i++) {
-        for (int j = 0; j < magnitude[i].size(); j++) {
-            std::cout << magnitude[i][j] << " ";
-        }
-    }
+    // auto magnitude = ComputeMagnitude(STFT);
+    // std::cout << "magnitude size: " << magnitude.size() << std::endl;
+    // std::cout << "magnitude[0] size: " << magnitude[0].size() << std::endl;
+    // for (int i = 0; i < magnitude.size(); i++) {
+    //     for (int j = 0; j < magnitude[i].size(); j++) {
+    //         std::cout << magnitude[i][j] << " ";
+    //     }
+    // }
 
 }

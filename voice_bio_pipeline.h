@@ -8,7 +8,7 @@
 
 // Forward declarations
 class EcapaEngine;
-class MelExtractor;
+class Fbank;
 class VadIterator;
 
 
@@ -46,13 +46,12 @@ public:
     static float cosine_similarity(const std::vector<float>& a, const std::vector<float>& b);
 
 private:
-
     int sr_;
     float min_speech_duration_sec_ = 0.5f;
 
     // Engines (separated for clean architecture)
     std::unique_ptr<EcapaEngine> ecapa_engine_;
-    std::unique_ptr<MelExtractor> mel_extractor_;
+    std::unique_ptr<Fbank> fbank_extractor_;
     std::unique_ptr<VadIterator> vad_engine_2_;
 };
 

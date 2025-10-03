@@ -1,7 +1,9 @@
 #include "voice_bio_pipeline.h"
 #include "ecapa_engine.h"
-#include "mel_extractor.h"
+#include "fbank.h"
 #include "vad_engine.h"
+#include "time_utils.h"
+#include "wav.h"
 
 #include <algorithm>
 #include <cmath>
@@ -67,7 +69,7 @@ VoiceBiometricsPipeline::VoiceBiometricsPipeline(
     : sr_(sampling_rate) {
     
     // Initialize mel extractor with SpeechBrain-compatible parameters
-    mel_extractor_ = std::make_unique<MelExtractor>(
+    fbank_extractor_ = std::make_unique<Fbank>(
         16000,   // sample_rate
         0.0f,    // f_min
         8000.0f, // f_max
@@ -76,7 +78,7 @@ VoiceBiometricsPipeline::VoiceBiometricsPipeline(
         25,      // win_length
         10       // hop_length
     );
-    
+
     std::cout << "Mel Extractor initialized" << std::endl;
     
     // Initialize VAD engine if model path provided
@@ -99,7 +101,14 @@ VoiceBiometricsPipeline::VoiceBiometricsPipeline(
 VoiceBiometricsPipeline::~VoiceBiometricsPipeline() = default;
 
 std::vector<float> VoiceBiometricsPipeline::read_audio(const std::string& path) const {
-    return read_wav_mono_16k(path);
+    WavReader wav_reader(path);
+    int num_samples = wav_reader.num_samples();
+    std::vector<float> input_wav(static_cast<size_t>(num_samples));
+    for (int i = 0; i < num_samples; ++i) {
+      input_wav[i] = static_cast<float>(*(wav_reader.data() + i));
+    }
+    return input_wav;
+    // return read_wav_mono_16k(path);
 }
 
 std::vector<timestamp_t> VoiceBiometricsPipeline::get_speech_timestamps(const std::vector<float>& wav) const {
@@ -149,8 +158,13 @@ std::vector<float> VoiceBiometricsPipeline::mean_pool(const std::vector<std::vec
 
 std::vector<float> VoiceBiometricsPipeline::extract_embedding(const std::string& audio_path) {
     auto wav = read_audio(audio_path);
+    time_point t1, t2;
+
+    t1 = time_utils::now();
     auto tss = get_speech_timestamps(wav);
-    
+    t2 = time_utils::now();
+    std::cout << "Time taken to get speech timestamps: " << time_utils::diff_time_milliseconds(t1, t2) << " milliseconds" << std::endl;
+
     // TODO Remove
     std::cout << "Found " << tss.size() << " speech segments:" << std::endl;
     for (const auto &ts : tss) {
@@ -158,63 +172,6 @@ std::vector<float> VoiceBiometricsPipeline::extract_embedding(const std::string&
     }
 
     auto chunks = build_chunks(wav, tss);
-    // Gộp các chunks lại thành một waveform duy nhất và save ra file "speech.wav"
-    // if (!chunks.empty()) {
-    //     // Concatenate all chunks into a single waveform
-    //     std::vector<float> speech_wav;
-    //     for (const auto& chunk : chunks) {
-    //         speech_wav.insert(speech_wav.end(), chunk.begin(), chunk.end());
-    //     }
-
-    //     // Write to "speech.wav" as 16-bit PCM mono, 16kHz
-    //     static int count = 0;
-    //     std::ofstream out("speech" + std::to_string(count) + ".wav", std::ios::binary);
-    //     count++;
-    //     if (out) {
-    //         // WAV header
-    //         int sample_rate = sr_;
-    //         int num_channels = 1;
-    //         int bits_per_sample = 16;
-    //         int byte_rate = sample_rate * num_channels * bits_per_sample / 8;
-    //         int block_align = num_channels * bits_per_sample / 8;
-    //         int data_size = static_cast<int>(speech_wav.size()) * num_channels * bits_per_sample / 8;
-    //         int chunk_size = 36 + data_size;
-
-    //         // Write RIFF header
-    //         out.write("RIFF", 4);
-    //         out.write(reinterpret_cast<const char*>(&chunk_size), 4);
-    //         out.write("WAVE", 4);
-
-    //         // fmt subchunk
-    //         out.write("fmt ", 4);
-    //         int subchunk1_size = 16;
-    //         short audio_format = 1;
-    //         out.write(reinterpret_cast<const char*>(&subchunk1_size), 4);
-    //         out.write(reinterpret_cast<const char*>(&audio_format), 2);
-    //         out.write(reinterpret_cast<const char*>(&num_channels), 2);
-    //         out.write(reinterpret_cast<const char*>(&sample_rate), 4);
-    //         out.write(reinterpret_cast<const char*>(&byte_rate), 4);
-    //         out.write(reinterpret_cast<const char*>(&block_align), 2);
-    //         out.write(reinterpret_cast<const char*>(&bits_per_sample), 2);
-
-    //         // data subchunk
-    //         out.write("data", 4);
-    //         out.write(reinterpret_cast<const char*>(&data_size), 4);
-
-    //         // Write PCM data
-    //         for (float sample : speech_wav) {
-    //             // Clamp to [-1, 1]
-    //             if (sample > 1.0f) sample = 1.0f;
-    //             if (sample < -1.0f) sample = -1.0f;
-    //             int16_t pcm = static_cast<int16_t>(sample * 32767.0f);
-    //             out.write(reinterpret_cast<const char*>(&pcm), 2);
-    //         }
-    //         out.close();
-    //         std::cout << "Saved concatenated speech to speech.wav (" << speech_wav.size() << " samples)" << std::endl;
-    //     } else {
-    //         std::cerr << "Failed to open speech.wav for writing" << std::endl;
-    //     }
-    // }
 
     if (chunks.empty()) {
         std::cerr << "No valid speech chunks found" << std::endl;
@@ -223,8 +180,18 @@ std::vector<float> VoiceBiometricsPipeline::extract_embedding(const std::string&
     
     std::vector<std::vector<float>> embeddings;
     for (const auto& chunk : chunks) {
-        auto mel_features = mel_extractor_->extract(chunk);
+        t1 = time_utils::now();
+        auto mel_features = fbank_extractor_->extract(chunk);
+        t2 = time_utils::now();
+        
+        std::cout << "Time taken to extract mel features: " << time_utils::diff_time_milliseconds(t1, t2) << " milliseconds" << std::endl;
+        // auto mel_features = mel_extractor_->kaldi_extract(chunk);
+
+        t1 = time_utils::now();
         auto embedding = ecapa_engine_->compute_embedding(mel_features);
+        t2 = time_utils::now();
+        std::cout << "Time taken to extract embedding: " << time_utils::diff_time_milliseconds(t1, t2) << " milliseconds" << std::endl;
+
         embeddings.push_back(embedding);
     }
     
@@ -236,6 +203,11 @@ std::vector<float> VoiceBiometricsPipeline::extract_embedding(const std::string&
     // Average embeddings across all chunks (mean pooling)
     std::vector<float> final_embedding = mean_pool(embeddings);
     return final_embedding;
+
+    // auto mel_features = mel_extractor_->kaldi_extract(chunks);
+    // auto embedding = ecapa_engine_->compute_embedding(mel_features);
+
+    // return embedding;
 }
 
 float VoiceBiometricsPipeline::cosine_similarity(const std::vector<float>& a, const std::vector<float>& b) {
@@ -248,5 +220,4 @@ float VoiceBiometricsPipeline::cosine_similarity(const std::vector<float>& a, co
     if (na == 0.0 || nb == 0.0) return 0.0f;
 
     return static_cast<float>(dot / (std::sqrt(na) * std::sqrt(nb)));
-
 }
