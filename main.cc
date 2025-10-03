@@ -26,8 +26,18 @@ int main(int argc, char** argv) {
     std::cout << "\nEnrolling speaker from: " << argv[1] << std::endl;
     auto emb1 = pipeline.extract_embedding(argv[1]);
     
+    std::cout << "Emb1: \n";
+    for (int i = 0; i < emb1.size(); i++) {
+        std::cout << emb1[i] << " ";
+    } std::cout << std::endl;
+
     std::cout << "\nVerifying speaker from: " << argv[2] << std::endl;
     auto emb2 = pipeline.extract_embedding(argv[2]);
+
+    std::cout << "Emb2: \n";
+    for (int i = 0; i < emb2.size(); i++) {
+        std::cout << emb2[i] << " ";
+    } std::cout << std::endl;
 
     if (emb1.empty() || emb2.empty()) {
         std::cerr << "❌ Failed to extract embeddings" << std::endl;

@@ -68,8 +68,8 @@ class VoiceBiometricsPipeline:
         for chunk, ts in speech_chunks:
             if chunk.dim() == 1:
                 chunk = chunk.unsqueeze(0)
-            print(chunk.shape)
             embedding = self.speaker_model.encode_batch(chunk)
+            print("Embedding:", embedding)
             embeddings.append(embedding.squeeze().cpu())
             valid_chunks.append(ts)
 
@@ -108,6 +108,7 @@ class VoiceBiometricsPipeline:
         
     def compute_similarity(self, embedding1, embedding2):
         """Calculate cosnine similarity"""
+        print(embedding1, embedding2)
         similarity = torch.nn.functional.cosine_similarity(
             embedding1.unsqueeze(0),
             embedding2.unsqueeze(0)

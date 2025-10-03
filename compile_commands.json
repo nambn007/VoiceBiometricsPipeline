@@ -1,32 +1,44 @@
 [
 {
-  "directory": "/u02/libs/silero-vad/cc/build",
-  "command": "/usr/bin/c++  -I/u02/libs/silero-vad/cc/third_party/onnxruntime/include -I/u02/libs/silero-vad/cc/third_party/kaldi-native-fbank -I/u02/libs/silero-vad/cc -std=gnu++17 -o CMakeFiles/voice_bio.dir/main.cc.o -c /u02/libs/silero-vad/cc/main.cc",
-  "file": "/u02/libs/silero-vad/cc/main.cc",
+  "directory": "/workspace/projects/VoiceBios/VoiceBiometricsPipeline/build",
+  "command": "/usr/bin/c++  -I/workspace/projects/VoiceBios/VoiceBiometricsPipeline/third_party/onnxruntime/include -I/workspace/projects/VoiceBios/VoiceBiometricsPipeline/third_party/kaldi-native-fbank -I/workspace/projects/VoiceBios/VoiceBiometricsPipeline -std=gnu++17 -o CMakeFiles/voice_bio.dir/main.cc.o -c /workspace/projects/VoiceBios/VoiceBiometricsPipeline/main.cc",
+  "file": "/workspace/projects/VoiceBios/VoiceBiometricsPipeline/main.cc",
   "output": "CMakeFiles/voice_bio.dir/main.cc.o"
 },
 {
-  "directory": "/u02/libs/silero-vad/cc/build",
-  "command": "/usr/bin/c++  -I/u02/libs/silero-vad/cc/third_party/onnxruntime/include -I/u02/libs/silero-vad/cc/third_party/kaldi-native-fbank -I/u02/libs/silero-vad/cc -std=gnu++17 -o CMakeFiles/voice_bio.dir/voice_bio_pipeline.cc.o -c /u02/libs/silero-vad/cc/voice_bio_pipeline.cc",
-  "file": "/u02/libs/silero-vad/cc/voice_bio_pipeline.cc",
+  "directory": "/workspace/projects/VoiceBios/VoiceBiometricsPipeline/build",
+  "command": "/usr/bin/c++  -I/workspace/projects/VoiceBios/VoiceBiometricsPipeline/third_party/onnxruntime/include -I/workspace/projects/VoiceBios/VoiceBiometricsPipeline/third_party/kaldi-native-fbank -I/workspace/projects/VoiceBios/VoiceBiometricsPipeline -std=gnu++17 -o CMakeFiles/voice_bio.dir/voice_bio_pipeline.cc.o -c /workspace/projects/VoiceBios/VoiceBiometricsPipeline/voice_bio_pipeline.cc",
+  "file": "/workspace/projects/VoiceBios/VoiceBiometricsPipeline/voice_bio_pipeline.cc",
   "output": "CMakeFiles/voice_bio.dir/voice_bio_pipeline.cc.o"
 },
 {
-  "directory": "/u02/libs/silero-vad/cc/build",
-  "command": "/usr/bin/c++  -I/u02/libs/silero-vad/cc/third_party/onnxruntime/include -I/u02/libs/silero-vad/cc/third_party/kaldi-native-fbank -I/u02/libs/silero-vad/cc -std=gnu++17 -o CMakeFiles/voice_bio.dir/ecapa_engine.cc.o -c /u02/libs/silero-vad/cc/ecapa_engine.cc",
-  "file": "/u02/libs/silero-vad/cc/ecapa_engine.cc",
+  "directory": "/workspace/projects/VoiceBios/VoiceBiometricsPipeline/build",
+  "command": "/usr/bin/c++  -I/workspace/projects/VoiceBios/VoiceBiometricsPipeline/third_party/onnxruntime/include -I/workspace/projects/VoiceBios/VoiceBiometricsPipeline/third_party/kaldi-native-fbank -I/workspace/projects/VoiceBios/VoiceBiometricsPipeline -std=gnu++17 -o CMakeFiles/voice_bio.dir/ecapa_engine.cc.o -c /workspace/projects/VoiceBios/VoiceBiometricsPipeline/ecapa_engine.cc",
+  "file": "/workspace/projects/VoiceBios/VoiceBiometricsPipeline/ecapa_engine.cc",
   "output": "CMakeFiles/voice_bio.dir/ecapa_engine.cc.o"
 },
 {
-  "directory": "/u02/libs/silero-vad/cc/build",
-  "command": "/usr/bin/c++  -I/u02/libs/silero-vad/cc/third_party/onnxruntime/include -I/u02/libs/silero-vad/cc/third_party/kaldi-native-fbank -I/u02/libs/silero-vad/cc -std=gnu++17 -o CMakeFiles/voice_bio.dir/mel_extractor.cc.o -c /u02/libs/silero-vad/cc/mel_extractor.cc",
-  "file": "/u02/libs/silero-vad/cc/mel_extractor.cc",
+  "directory": "/workspace/projects/VoiceBios/VoiceBiometricsPipeline/build",
+  "command": "/usr/bin/c++  -I/workspace/projects/VoiceBios/VoiceBiometricsPipeline/third_party/onnxruntime/include -I/workspace/projects/VoiceBios/VoiceBiometricsPipeline/third_party/kaldi-native-fbank -I/workspace/projects/VoiceBios/VoiceBiometricsPipeline -std=gnu++17 -o CMakeFiles/voice_bio.dir/mel_extractor.cc.o -c /workspace/projects/VoiceBios/VoiceBiometricsPipeline/mel_extractor.cc",
+  "file": "/workspace/projects/VoiceBios/VoiceBiometricsPipeline/mel_extractor.cc",
   "output": "CMakeFiles/voice_bio.dir/mel_extractor.cc.o"
 },
 {
-  "directory": "/u02/libs/silero-vad/cc/build",
-  "command": "/usr/bin/c++  -I/u02/libs/silero-vad/cc/third_party/onnxruntime/include -I/u02/libs/silero-vad/cc/third_party/kaldi-native-fbank -I/u02/libs/silero-vad/cc -std=gnu++17 -o CMakeFiles/voice_bio.dir/vad_engine.cc.o -c /u02/libs/silero-vad/cc/vad_engine.cc",
-  "file": "/u02/libs/silero-vad/cc/vad_engine.cc",
-  "output": "CMakeFiles/voice_bio.dir/vad_engine.cc.o"
+  "directory": "/workspace/projects/VoiceBios/VoiceBiometricsPipeline/build",
+  "command": "/usr/bin/c++  -I/workspace/projects/VoiceBios/VoiceBiometricsPipeline/third_party/onnxruntime/include -I/workspace/projects/VoiceBios/VoiceBiometricsPipeline/third_party/kaldi-native-fbank -I/workspace/projects/VoiceBios/VoiceBiometricsPipeline -std=gnu++17 -o CMakeFiles/voice_bio.dir/vad_engine.cpp.o -c /workspace/projects/VoiceBios/VoiceBiometricsPipeline/vad_engine.cpp",
+  "file": "/workspace/projects/VoiceBios/VoiceBiometricsPipeline/vad_engine.cpp",
+  "output": "CMakeFiles/voice_bio.dir/vad_engine.cpp.o"
+},
+{
+  "directory": "/workspace/projects/VoiceBios/VoiceBiometricsPipeline/build",
+  "command": "/usr/bin/c++  -I/workspace/projects/VoiceBios/VoiceBiometricsPipeline/third_party/onnxruntime/include -I/workspace/projects/VoiceBios/VoiceBiometricsPipeline/third_party/kaldi-native-fbank -I/workspace/projects/VoiceBios/VoiceBiometricsPipeline -std=gnu++17 -o CMakeFiles/test.dir/test/test_fbank.cc.o -c /workspace/projects/VoiceBios/VoiceBiometricsPipeline/test/test_fbank.cc",
+  "file": "/workspace/projects/VoiceBios/VoiceBiometricsPipeline/test/test_fbank.cc",
+  "output": "CMakeFiles/test.dir/test/test_fbank.cc.o"
+},
+{
+  "directory": "/workspace/projects/VoiceBios/VoiceBiometricsPipeline/build",
+  "command": "/usr/bin/c++  -I/workspace/projects/VoiceBios/VoiceBiometricsPipeline/third_party/onnxruntime/include -I/workspace/projects/VoiceBios/VoiceBiometricsPipeline/third_party/kaldi-native-fbank -I/workspace/projects/VoiceBios/VoiceBiometricsPipeline -std=gnu++17 -o CMakeFiles/test.dir/mel_extractor.cc.o -c /workspace/projects/VoiceBios/VoiceBiometricsPipeline/mel_extractor.cc",
+  "file": "/workspace/projects/VoiceBios/VoiceBiometricsPipeline/mel_extractor.cc",
+  "output": "CMakeFiles/test.dir/mel_extractor.cc.o"
 }
 ]

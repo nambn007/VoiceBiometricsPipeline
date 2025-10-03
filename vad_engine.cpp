@@ -1,7 +1,7 @@
 //
 // Created by namnt55 on 9/26/25.
 //
-#include "vad_engine_2.h"
+#include "vad_engine.h"
 
 VadIterator::VadIterator(int Sample_rate, int windows_frame_size, float Threshold,
                          int min_silence_duration_ms, int speech_pad_ms, int min_speech_duration_ms,

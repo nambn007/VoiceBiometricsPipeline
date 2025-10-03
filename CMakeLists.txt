@@ -24,31 +24,21 @@ pkg_check_modules(FFTW REQUIRED fftw3)
 include_directories(${FFTW_INCLUDE_DIRS})
 link_directories(${FFTW_LIBRARY_DIRS})
 
+include_directories(${CMAKE_SOURCE_DIR})
 
 add_executable(voice_bio
     main.cc
+    audio_features.cpp
     voice_bio_pipeline.cc
     ecapa_engine.cc
     mel_extractor.cc
-    vad_engine.cc
-    vad_engine_2.cpp
-    audio_feature_extractor_v2.cc
+    vad_engine.cpp
 )
 
 add_executable(test 
-  test.cc
+  test/test_fbank.cc
   mel_extractor.cc
-)
-
-add_executable(test_audio_feature_extractor
-  test_audio_feature_extractor.cc
-  audio_feature_extractor.cc
-  mel_extractor.cc
-)
-
-add_executable(test_audio_feature_v2
-  test_audio_feature_v2.cc
-  audio_feature_extractor_v2.cc
+  audio_features.cpp
 )
 
 target_include_directories(voice_bio PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
@@ -63,23 +53,9 @@ target_link_libraries(voice_bio PRIVATE
 target_link_libraries(test PRIVATE 
     onnxruntime
     kaldi-native-fbank-core
-
     fftw3
     fftw3f
 )
-
-target_link_libraries(test_audio_feature_extractor PRIVATE 
-    kaldi-native-fbank-core
-    fftw3
-    fftw3f
-)
-
-target_link_libraries(test_audio_feature_v2 PRIVATE 
-    # No external dependencies needed - pure C++ implementation
-    fftw3
-    fftw3f
-)
-
 
 # Ensure the built binary can locate ONNX Runtime at runtime
 set_target_properties(voice_bio PROPERTIES
